@@ -8,17 +8,24 @@
 
 .NOTES
     Release Date: 2022-12-29T15:18
-    Last Updated: 2022-12-29T15:18
+    Last Updated: 2022-12-29T15:25
    
     Author: Luke Nichols
     https://github.com/jlukenichols/
 #>
 
+#TODO: "Functionalize" the script, rework input variables into 
+#TODO: Figure out a way to take the domain name as a parameter so the script doesn't just use the current domain
+
 Clear-Host
 
-### Define variables ###
+### User-Defined variables ###
 
 $UnacceptableTimeDriftInSeconds = 0.1
+$EmailTo = ""
+$EmailFrom = ""
+$EmailSMTPServer = ""
+$EmailSubject = ""
 
 #Get the current date and write it to a variable
 #[DateTime]$currentDate=Get-Date #Local timezone
@@ -38,8 +45,6 @@ $currentSecond = $($currentDate.Second).ToString("00")
 #Cancel red alert
 $TimeWarHasBegun = $false
 $TimeDriftList = "Hostname TimeDrift"
-
-#TODO: Figure out a way to take the domain name as a parameter so the script doesn't just use the current domain
 
 #Query for a list of domain controllers in the current domain
 :loopThroughDCs foreach ($DC in (Get-ADDomainController -Filter * | Select HostName)) {
@@ -75,12 +80,13 @@ if ($TimeWarHasBegun -eq $true) {
     Write-Output $TimeDriftList    
     $Body = "WARNING: TIME DRIFT EXCEEDING ACCEPTABLE LIMIT OF $UnacceptableTimeDriftInSeconds HAS BEEN DETECTED ON A DOMAIN CONTROLLER. SEE BELOW FOR MORE DETAILS.`n`n"
     $Body += "$TimeDriftList`n"
+    #Always include contextual information about where the script is running so when your replacement needs to update it later they know where to find it
     $Body += "`nThis email was generated automatically by script `"$PSScriptRoot\$($MyInvocation.MyCommand.Name)`" on computer `"$env:COMPUTERNAME`" at $(Get-Date)"
 
     Write-Output $Body
     
     #TODO: Finish code to send an alert email
-    #Send-MailMessage -Subject "" -SmtpServer "" -To "" -From "" -Body "$TimeDriftList"
+    #Send-MailMessage -Subject $EmailSubject -SmtpServer $EmailSMTPServer -To $EmailTo -From $EmailFrom -Body "$TimeDriftList"
 } else {
     Write-Output "`n"
     Write-Output "All domain controllers have time drift within acceptable limit of +/- $UnacceptableTimeDriftInSeconds"
