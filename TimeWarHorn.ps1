@@ -7,8 +7,8 @@
   The purpose of this script is to monitor time drift on domain controllers and send an alert ("sound the horn") if it drifts to unacceptable levels
 
 .NOTES
-    Release Date: 2022-12-29T15:18
-    Last Updated: 2022-12-29T15:25
+    Release Date: 2022-12-29T15:18:00-4
+    Last Updated: 2025-07-03T19:47:00Z
    
     Author: Luke Nichols
     https://github.com/jlukenichols/
@@ -21,11 +21,11 @@ Clear-Host
 
 ### User-Defined variables ###
 
-$UnacceptableTimeDriftInSeconds = 0.1
-$EmailTo = ""
-$EmailFrom = ""
-$EmailSMTPServer = ""
-$EmailSubject = ""
+$UnacceptableTimeDriftInSeconds = 0.2
+#$EmailTo = ""
+#$EmailFrom = ""
+#$EmailSMTPServer = ""
+#$EmailSubject = ""
 
 #Get the current date and write it to a variable
 #[DateTime]$currentDate=Get-Date #Local timezone
@@ -62,7 +62,7 @@ $TimeDriftList = "Hostname TimeDrift"
         #Get the absolute value of the time drift value (remove any negative numbers) because we don't care which way it's drifted, only by how much
         $TimeDrift = [Math]::abs($TimeDrift)
         
-        if ($TimeDrift -ge 0.1) {
+        if ($TimeDrift -ge $UnacceptableTimeDriftInSeconds) {
             $TimeWarHasBegun = $true
             Write-Output "BEGUN, THE TIME WAR HAS"
         }
@@ -81,7 +81,7 @@ if ($TimeWarHasBegun -eq $true) {
     $Body = "WARNING: TIME DRIFT EXCEEDING ACCEPTABLE LIMIT OF $UnacceptableTimeDriftInSeconds HAS BEEN DETECTED ON A DOMAIN CONTROLLER. SEE BELOW FOR MORE DETAILS.`n`n"
     $Body += "$TimeDriftList`n"
     #Always include contextual information about where the script is running so when your replacement needs to update it later they know where to find it
-    $Body += "`nThis email was generated automatically by script `"$PSScriptRoot\$($MyInvocation.MyCommand.Name)`" on computer `"$env:COMPUTERNAME`" at $(Get-Date)"
+    #$Body += "`nThis email was generated automatically by script `"$PSScriptRoot\$($MyInvocation.MyCommand.Name)`" on computer `"$env:COMPUTERNAME`" at $(Get-Date)"
 
     Write-Output $Body
     
@@ -89,7 +89,7 @@ if ($TimeWarHasBegun -eq $true) {
     #Send-MailMessage -Subject $EmailSubject -SmtpServer $EmailSMTPServer -To $EmailTo -From $EmailFrom -Body "$TimeDriftList"
 } else {
     Write-Output "`n"
-    Write-Output "All domain controllers have time drift within acceptable limit of +/- $UnacceptableTimeDriftInSeconds"
+    Write-Output "All domain controllers have time drift within acceptable limit of +/- $UnacceptableTimeDriftInSeconds seconds"
 }
 ### End of script main body ###
 break
